@@ -115,7 +115,6 @@ class B2Manager(pz.App):
                                 padding=20,
                                 bg="#0f3460",
                                 radius=12,
-                                min_width=300,
                             ),
                             # Files panel
                             pz.container(
