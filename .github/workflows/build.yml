@@ -1,0 +1,49 @@
+name: Build Pyzed EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: |
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+    - name: Install dependencies
+      run: |
+        uv sync
+
+    - name: Download B2 CLI
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/Backblaze/B2_Command_Line_Tool/releases/download/v3.5.0/b2-windows.exe" -OutFile "b2-windows.exe"
+
+    - name: Build EXE with Pyzed
+      run: |
+        uv run pyzed build --onefile
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.0
+        name: B2 Manager Pyzed v1.0.0
+        files: dist/B2Manager.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
