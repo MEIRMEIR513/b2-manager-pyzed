@@ -28,25 +28,22 @@ jobs:
     - name: Install dependencies
       run: |
         uv sync
+        uv pip install pyinstaller
 
     - name: Download B2 CLI
       run: |
         Invoke-WebRequest -Uri "https://github.com/Backblaze/B2_Command_Line_Tool/releases/download/v3.5.0/b2-windows.exe" -OutFile "b2-windows.exe"
 
-    - name: Build EXE with Pyzed
+    - name: Build EXE with PyInstaller
       run: |
-        uv run pyzed build --onefile
-
-    - name: Copy B2 CLI to dist
-      run: |
-        Copy-Item b2-windows.exe dist\
+        uv run pyinstaller --onefile --windowed --add-data "b2-windows.exe;." src/b2_manager_pyzed/main.py
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v1.0.0
         name: B2 Manager Pyzed v1.0.0
-        files: dist/*.exe
+        files: dist/main.exe
         draft: false
         prerelease: false
       env:
