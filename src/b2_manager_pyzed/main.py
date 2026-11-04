@@ -83,9 +83,8 @@ class B2Manager(pz.App):
                                         ui.button(
                                             "Connect",
                                             self.connect,
-                                            bg="#4ade80",
-                                            color="#000",
-                                            weight="bold",
+                                            variant="solid",
+                                            tint="#4ade80",
                                         ),
                                     ],
                                     spacing=20,
@@ -101,11 +100,17 @@ class B2Manager(pz.App):
                         children=[
                             # Buckets panel
                             pz.container(
-                                content=pz.column(
-                                    children=[
-                                        pz.text("📦 Buckets", size=16, weight="bold", color="#60a5fa"),
-                                        *[ui.list_item(bucket, on_press=lambda i=i: self.on_bucket_select_by_index(i), icon="box") for i, bucket in enumerate(self.buckets)],
-                                    ],
+                                content=pz.scrollable(
+                                    pz.column(
+                                        children=[
+                                            pz.text("📦 Buckets", size=16, weight="bold", color="#60a5fa"),
+                                            pz.column([
+                                                ui.list_item(bucket, on_press=lambda i=i: self.on_bucket_select_by_index(i), icon="box") for i, bucket in enumerate(self.buckets)
+                                            ], spacing=2),
+                                        ],
+                                        spacing=8,
+                                    ),
+                                    height="fill",
                                 ),
                                 padding=20,
                                 bg="#0f3460",
@@ -114,18 +119,24 @@ class B2Manager(pz.App):
                             ),
                             # Files panel
                             pz.container(
-                                content=pz.column(
-                                    children=[
-                                        pz.row(
-                                            children=[
-                                                pz.text("📁 Files", size=16, weight="bold", color="#60a5fa"),
-                                                ui.button("↑ Back", self.go_back, enabled=self.current_folder != ""),
-                                            ],
-                                            spacing=10,
-                                        ),
-                                        pz.text(self.current_folder or "Root", size=12, color="#888"),
-                                        *[ui.list_item(file, on_press=lambda i=i: self.on_file_select_by_index(i), on_double_press=lambda i=i: self.on_file_double_click(i), icon="file" if not file.startswith("📁") else "folder") for i, file in enumerate(self.files)],
-                                    ],
+                                content=pz.scrollable(
+                                    pz.column(
+                                        children=[
+                                            pz.row(
+                                                children=[
+                                                    pz.text("📁 Files", size=16, weight="bold", color="#60a5fa"),
+                                                    ui.button("↑ Back", self.go_back, enabled=self.current_folder != ""),
+                                                ],
+                                                spacing=10,
+                                            ),
+                                            pz.text(self.current_folder or "Root", size=12, color="#888"),
+                                            pz.column([
+                                                ui.list_item(file, on_press=lambda i=i: self.on_file_select_by_index(i), on_double_press=lambda i=i: self.on_file_double_click(i), icon="file" if not file.startswith("📁") else "folder") for i, file in enumerate(self.files)
+                                            ], spacing=2),
+                                        ],
+                                        spacing=8,
+                                    ),
+                                    height="fill",
                                 ),
                                 padding=20,
                                 bg="#0f3460",
@@ -150,7 +161,7 @@ class B2Manager(pz.App):
                                                     placeholder="Select file to upload",
                                                 ),
                                                 ui.button("Browse", self.browse_upload),
-                                                ui.button("Upload", self.upload_file, bg="#f472b6"),
+                                                ui.button("Upload", self.upload_file, variant="solid", tint="#f472b6"),
                                             ],
                                             spacing=10,
                                         ),
@@ -167,8 +178,8 @@ class B2Manager(pz.App):
                                                     placeholder="Download path",
                                                 ),
                                                 ui.button("Browse", self.browse_download),
-                                                ui.button("Download", self.download_file, bg="#f472b6"),
-                                                ui.button("Delete", self.delete_file, bg="#ef4444"),
+                                                ui.button("Download", self.download_file, variant="solid", tint="#f472b6"),
+                                                ui.button("Delete", self.delete_file, variant="solid", tint="#ef4444"),
                                             ],
                                             spacing=10,
                                         ),
@@ -217,7 +228,7 @@ class B2Manager(pz.App):
                 self.progress = 1.0
             except Exception as e:
                 self.status = f"Connection failed: {str(e)}"
-                self.progress = 0.0.0
+                self.progress = 0.0
                 self.connected = False
 
         threading.Thread(target=connect_thread, daemon=True).start()
@@ -331,7 +342,7 @@ class B2Manager(pz.App):
         b2_filename = self.current_folder + "/" + filename if self.current_folder else filename
 
         self.status = "Uploading..."
-        self.progress = 0.0.0
+        self.progress = 0.0
 
         def upload_thread():
             try:
