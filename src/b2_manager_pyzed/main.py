@@ -1,5 +1,6 @@
 import pyzed as pz
 import os
+import sys
 import subprocess
 import threading
 from b2sdk.v2 import InMemoryAccountInfo, B2Api
@@ -322,7 +323,16 @@ class B2Manager(pz.App):
         def download_thread():
             try:
                 # Use b2-windows.exe CLI for download
-                b2_cli_path = r"C:\Users\USER\Downloads\b2-windows.exe"
+                if getattr(sys, "frozen", False):
+                    # Running as EXE - b2-windows.exe should be in the same directory
+                    b2_cli_path = os.path.join(os.path.dirname(sys.executable), "b2-windows.exe")
+                else:
+                    # Running as script
+                    b2_cli_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "b2-windows.exe")
+
+                if not os.path.exists(b2_cli_path):
+                    b2_cli_path = r"C:\Users\USER\Downloads\b2-windows.exe"
+
                 cmd = [b2_cli_path, "file", "download", f"b2id://{file_id}", output_path]
 
                 startupinfo = subprocess.STARTUPINFO()

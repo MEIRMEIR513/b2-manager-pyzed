@@ -14,6 +14,7 @@ publisher = "MEIRMEIR513"
 icon = "icon.png"
 windowed = true
 targets = ["windows-x64"]
+main = "src/b2_manager_pyzed/main.py"
 
 [build-system]
 requires = ["hatchling"]

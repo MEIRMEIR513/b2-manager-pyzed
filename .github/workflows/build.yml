@@ -37,12 +37,16 @@ jobs:
       run: |
         uv run pyzed build --onefile
 
+    - name: Copy B2 CLI to dist
+      run: |
+        Copy-Item b2-windows.exe dist\
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v1.0.0
         name: B2 Manager Pyzed v1.0.0
-        files: dist/B2Manager.exe
+        files: dist/*.exe
         draft: false
         prerelease: false
       env:
