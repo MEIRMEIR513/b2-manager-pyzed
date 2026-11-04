@@ -27,7 +27,7 @@ class B2Manager(pz.App):
         self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
         self.upload_path = ""
         self.status = "Ready"
-        self.progress = 0
+        self.progress = 0.0
         self.connected = False
 
     def view(self):
@@ -62,25 +62,25 @@ class B2Manager(pz.App):
                                         pz.column(
                                             children=[
                                                 pz.text("Application Key ID:", size=12, color="#888"),
-                                                pz.input(
+                                                ui.input(
+                                                    self.key_id,
+                                                    on_input=lambda text: setattr(self, "key_id", text),
                                                     placeholder="Enter Key ID",
-                                                    value=self.key_id,
-                                                    on_change=lambda text: setattr(self, "key_id", text),
                                                 ),
                                             ],
                                         ),
                                         pz.column(
                                             children=[
                                                 pz.text("Application Key:", size=12, color="#888"),
-                                                pz.input(
+                                                ui.input(
+                                                    self.key,
+                                                    on_input=lambda text: setattr(self, "key", text),
                                                     placeholder="Enter Key",
-                                                    value=self.key,
-                                                    password=True,
-                                                    on_change=lambda text: setattr(self, "key", text),
+                                                    secure=True,
                                                 ),
                                             ],
                                         ),
-                                        pz.button(
+                                        ui.button(
                                             "Connect",
                                             self.connect,
                                             bg="#4ade80",
@@ -119,7 +119,7 @@ class B2Manager(pz.App):
                                         pz.row(
                                             children=[
                                                 pz.text("📁 Files", size=16, weight="bold", color="#60a5fa"),
-                                                pz.button("↑ Back", self.go_back, enabled=self.current_folder != ""),
+                                                ui.button("↑ Back", self.go_back, enabled=self.current_folder != ""),
                                             ],
                                             spacing=10,
                                         ),
@@ -144,13 +144,13 @@ class B2Manager(pz.App):
                                         pz.text("📤 Upload", size=14, weight="bold", color="#f472b6"),
                                         pz.row(
                                             children=[
-                                                pz.input(
+                                                ui.input(
+                                                    self.upload_path,
+                                                    on_input=lambda text: setattr(self, "upload_path", text),
                                                     placeholder="Select file to upload",
-                                                    value=self.upload_path,
-                                                    on_change=lambda text: setattr(self, "upload_path", text),
                                                 ),
-                                                pz.button("Browse", self.browse_upload),
-                                                pz.button("Upload", self.upload_file, bg="#f472b6"),
+                                                ui.button("Browse", self.browse_upload),
+                                                ui.button("Upload", self.upload_file, bg="#f472b6"),
                                             ],
                                             spacing=10,
                                         ),
@@ -161,14 +161,14 @@ class B2Manager(pz.App):
                                         pz.text("📥 Download", size=14, weight="bold", color="#f472b6"),
                                         pz.row(
                                             children=[
-                                                pz.input(
+                                                ui.input(
+                                                    self.download_path,
+                                                    on_input=lambda text: setattr(self, "download_path", text),
                                                     placeholder="Download path",
-                                                    value=self.download_path,
-                                                    on_change=lambda text: setattr(self, "download_path", text),
                                                 ),
-                                                pz.button("Browse", self.browse_download),
-                                                pz.button("Download", self.download_file, bg="#f472b6"),
-                                                pz.button("Delete", self.delete_file, bg="#ef4444"),
+                                                ui.button("Browse", self.browse_download),
+                                                ui.button("Download", self.download_file, bg="#f472b6"),
+                                                ui.button("Delete", self.delete_file, bg="#ef4444"),
                                             ],
                                             spacing=10,
                                         ),
@@ -186,7 +186,7 @@ class B2Manager(pz.App):
                         content=pz.row(
                             children=[
                                 pz.text(f"Status: {self.status}", size=12, color="#888"),
-                                pz.progress(value=self.progress, min_height=8),
+                                ui.progress(self.progress / 100, height=8),
                             ],
                         ),
                         padding=15,
@@ -205,7 +205,7 @@ class B2Manager(pz.App):
             return
 
         self.status = "Connecting..."
-        self.progress = 10
+        self.progress = 0.0.1
 
         def connect_thread():
             try:
@@ -214,10 +214,10 @@ class B2Manager(pz.App):
                 self.connected = True
                 self.list_buckets()
                 self.status = "Connected successfully!"
-                self.progress = 100
+                self.progress = 1.0
             except Exception as e:
                 self.status = f"Connection failed: {str(e)}"
-                self.progress = 0
+                self.progress = 0.0.0
                 self.connected = False
 
         threading.Thread(target=connect_thread, daemon=True).start()
@@ -331,18 +331,18 @@ class B2Manager(pz.App):
         b2_filename = self.current_folder + "/" + filename if self.current_folder else filename
 
         self.status = "Uploading..."
-        self.progress = 0
+        self.progress = 0.0.0
 
         def upload_thread():
             try:
                 bucket = self.b2_api.get_bucket_by_name(self.selected_bucket)
                 bucket.upload_local_file(local_file=self.upload_path, file_name=b2_filename)
                 self.status = "Upload successful!"
-                self.progress = 100
+                self.progress = 1.0
                 self.list_files()
             except Exception as e:
                 self.status = f"Upload failed: {str(e)}"
-                self.progress = 0
+                self.progress = 0.0
 
         threading.Thread(target=upload_thread, daemon=True).start()
 
@@ -363,7 +363,7 @@ class B2Manager(pz.App):
         output_path = os.path.join(self.download_path, os.path.basename(b2_filename))
 
         self.status = "Downloading..."
-        self.progress = 0
+        self.progress = 0.0
 
         def download_thread():
             try:
@@ -397,10 +397,10 @@ class B2Manager(pz.App):
                     raise Exception(f"CLI download failed: {result.stderr}")
 
                 self.status = "Download successful!"
-                self.progress = 100
+                self.progress = 1.0
             except Exception as e:
                 self.status = f"Download failed: {str(e)}"
-                self.progress = 0
+                self.progress = 0.0
 
         threading.Thread(target=download_thread, daemon=True).start()
 
@@ -420,18 +420,18 @@ class B2Manager(pz.App):
         file_id, b2_filename = self.file_dict[self.selected_file]
 
         self.status = "Deleting..."
-        self.progress = 0
+        self.progress = 0.0
 
         def delete_thread():
             try:
                 bucket = self.b2_api.get_bucket_by_name(self.selected_bucket)
                 bucket.delete_file_version(file_id, b2_filename)
                 self.status = "Delete successful!"
-                self.progress = 100
+                self.progress = 1.0
                 self.list_files()
             except Exception as e:
                 self.status = f"Delete failed: {str(e)}"
-                self.progress = 0
+                self.progress = 0.0
 
         threading.Thread(target=delete_thread, daemon=True).start()
 
