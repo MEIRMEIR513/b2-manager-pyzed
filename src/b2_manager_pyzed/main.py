@@ -205,7 +205,7 @@ class B2Manager(pz.App):
             return
 
         self.status = "Connecting..."
-        self.progress = 0.0.1
+        self.progress = 0.1
 
         def connect_thread():
             try:
