@@ -9,7 +9,7 @@ from b2sdk.v2 import InMemoryAccountInfo, B2Api
 class B2Manager(pz.App):
     title = "B2 Cloud Storage Manager"
     size = (1200, 800)
-    theme = "ayu-dark"  # Modern dark theme
+    theme = "One Dark"  # Modern dark theme
 
     def __init__(self):
         super().__init__()
