@@ -1,4 +1,5 @@
 import pyzed as pz
+from pyzed import ui
 import os
 import sys
 import subprocess
@@ -32,146 +33,170 @@ class B2Manager(pz.App):
     def view(self):
         # Main container with gradient background effect
         return pz.container(
-            pz.column(
-                # Header with gradient effect
-                pz.container(
-                    pz.row(
-                        pz.text("☁️", size=40),
-                        pz.column(
-                            pz.text("B2 Cloud Storage", size=28, weight="bold"),
-                            pz.text("Manager", size=16, color="#888"),
-                        ),
-                        spacing=10,
-                    ),
-                    padding=30,
-                    background="#1a1a2e",
-                ),
-                # Authentication Section
-                pz.container(
-                    pz.column(
-                        pz.text("🔐 Authentication", size=18, weight="bold", color="#4ade80"),
-                        pz.row(
-                            pz.column(
-                                pz.text("Application Key ID:", size=12, color="#888"),
-                                pz.input(
-                                    placeholder="Enter Key ID",
-                                    value=self.key_id,
-                                    on_change=lambda text: setattr(self, "key_id", text),
-                                ),
-                            ),
-                            pz.column(
-                                pz.text("Application Key:", size=12, color="#888"),
-                                pz.input(
-                                    placeholder="Enter Key",
-                                    value=self.key,
-                                    password=True,
-                                    on_change=lambda text: setattr(self, "key", text),
-                                ),
-                            ),
-                            pz.button(
-                                "Connect",
-                                self.connect,
-                                background="#4ade80",
-                                color="#000",
-                                weight="bold",
-                            ),
-                            spacing=20,
-                        ),
-                    ),
-                    padding=20,
-                    background="#16213e",
-                    border_radius=12,
-                ),
-                # Main content area
-                pz.row(
-                    # Buckets panel
+            content=pz.column(
+                children=[
+                    # Header with gradient effect
                     pz.container(
-                        pz.column(
-                            pz.text("📦 Buckets", size=16, weight="bold", color="#60a5fa"),
-                            pz.list(
-                                self.buckets,
-                                on_select=self.on_bucket_select,
-                                min_height=400,
-                            ),
+                        content=pz.row(
+                            children=[
+                                pz.text("☁️", size=40),
+                                pz.column(
+                                    children=[
+                                        pz.text("B2 Cloud Storage", size=28, weight="bold"),
+                                        pz.text("Manager", size=16, color="#888"),
+                                    ],
+                                ),
+                            ],
+                            spacing=10,
+                        ),
+                        padding=30,
+                        bg="#1a1a2e",
+                    ),
+                    # Authentication Section
+                    pz.container(
+                        content=pz.column(
+                            children=[
+                                pz.text("🔐 Authentication", size=18, weight="bold", color="#4ade80"),
+                                pz.row(
+                                    children=[
+                                        pz.column(
+                                            children=[
+                                                pz.text("Application Key ID:", size=12, color="#888"),
+                                                pz.input(
+                                                    placeholder="Enter Key ID",
+                                                    value=self.key_id,
+                                                    on_change=lambda text: setattr(self, "key_id", text),
+                                                ),
+                                            ],
+                                        ),
+                                        pz.column(
+                                            children=[
+                                                pz.text("Application Key:", size=12, color="#888"),
+                                                pz.input(
+                                                    placeholder="Enter Key",
+                                                    value=self.key,
+                                                    password=True,
+                                                    on_change=lambda text: setattr(self, "key", text),
+                                                ),
+                                            ],
+                                        ),
+                                        pz.button(
+                                            "Connect",
+                                            self.connect,
+                                            bg="#4ade80",
+                                            color="#000",
+                                            weight="bold",
+                                        ),
+                                    ],
+                                    spacing=20,
+                                ),
+                            ],
                         ),
                         padding=20,
-                        background="#0f3460",
-                        border_radius=12,
-                        min_width=300,
+                        bg="#16213e",
+                        radius=12,
                     ),
-                    # Files panel
+                    # Main content area
+                    pz.row(
+                        children=[
+                            # Buckets panel
+                            pz.container(
+                                content=pz.column(
+                                    children=[
+                                        pz.text("📦 Buckets", size=16, weight="bold", color="#60a5fa"),
+                                        *[ui.list_item(bucket, on_press=lambda i=i: self.on_bucket_select_by_index(i), icon="box") for i, bucket in enumerate(self.buckets)],
+                                    ],
+                                ),
+                                padding=20,
+                                bg="#0f3460",
+                                radius=12,
+                                min_width=300,
+                            ),
+                            # Files panel
+                            pz.container(
+                                content=pz.column(
+                                    children=[
+                                        pz.row(
+                                            children=[
+                                                pz.text("📁 Files", size=16, weight="bold", color="#60a5fa"),
+                                                pz.button("↑ Back", self.go_back, enabled=self.current_folder != ""),
+                                            ],
+                                            spacing=10,
+                                        ),
+                                        pz.text(self.current_folder or "Root", size=12, color="#888"),
+                                        *[ui.list_item(file, on_press=lambda i=i: self.on_file_select_by_index(i), on_double_press=lambda i=i: self.on_file_double_click(i), icon="file" if not file.startswith("📁") else "folder") for i, file in enumerate(self.files)],
+                                    ],
+                                ),
+                                padding=20,
+                                bg="#0f3460",
+                                radius=12,
+                                width="fill",
+                            ),
+                        ],
+                        spacing=20,
+                    ),
+                    # Upload/Download panel
                     pz.container(
-                        pz.column(
-                            pz.row(
-                                pz.text("📁 Files", size=16, weight="bold", color="#60a5fa"),
-                                pz.button("↑ Back", self.go_back, enabled=self.current_folder != ""),
-                                spacing=10,
-                            ),
-                            pz.text(self.current_folder or "Root", size=12, color="#888"),
-                            pz.list(
-                                self.files,
-                                on_select=self.on_file_select,
-                                on_double_click=self.on_file_double_click,
-                                min_height=350,
-                            ),
+                        content=pz.row(
+                            children=[
+                                pz.column(
+                                    children=[
+                                        pz.text("📤 Upload", size=14, weight="bold", color="#f472b6"),
+                                        pz.row(
+                                            children=[
+                                                pz.input(
+                                                    placeholder="Select file to upload",
+                                                    value=self.upload_path,
+                                                    on_change=lambda text: setattr(self, "upload_path", text),
+                                                ),
+                                                pz.button("Browse", self.browse_upload),
+                                                pz.button("Upload", self.upload_file, bg="#f472b6"),
+                                            ],
+                                            spacing=10,
+                                        ),
+                                    ],
+                                ),
+                                pz.column(
+                                    children=[
+                                        pz.text("📥 Download", size=14, weight="bold", color="#f472b6"),
+                                        pz.row(
+                                            children=[
+                                                pz.input(
+                                                    placeholder="Download path",
+                                                    value=self.download_path,
+                                                    on_change=lambda text: setattr(self, "download_path", text),
+                                                ),
+                                                pz.button("Browse", self.browse_download),
+                                                pz.button("Download", self.download_file, bg="#f472b6"),
+                                                pz.button("Delete", self.delete_file, bg="#ef4444"),
+                                            ],
+                                            spacing=10,
+                                        ),
+                                    ],
+                                ),
+                            ],
+                            spacing=30,
                         ),
                         padding=20,
-                        background="#0f3460",
-                        border_radius=12,
-                        fill=True,
+                        bg="#16213e",
+                        radius=12,
                     ),
-                    spacing=20,
-                    fill=True,
-                ),
-                # Upload/Download panel
-                pz.container(
-                    pz.row(
-                        pz.column(
-                            pz.text("📤 Upload", size=14, weight="bold", color="#f472b6"),
-                            pz.row(
-                                pz.input(
-                                    placeholder="Select file to upload",
-                                    value=self.upload_path,
-                                    on_change=lambda text: setattr(self, "upload_path", text),
-                                ),
-                                pz.button("Browse", self.browse_upload),
-                                pz.button("Upload", self.upload_file, background="#f472b6"),
-                                spacing=10,
-                            ),
+                    # Status bar
+                    pz.container(
+                        content=pz.row(
+                            children=[
+                                pz.text(f"Status: {self.status}", size=12, color="#888"),
+                                pz.progress(value=self.progress, min_height=8),
+                            ],
                         ),
-                        pz.column(
-                            pz.text("📥 Download", size=14, weight="bold", color="#f472b6"),
-                            pz.row(
-                                pz.input(
-                                    placeholder="Download path",
-                                    value=self.download_path,
-                                    on_change=lambda text: setattr(self, "download_path", text),
-                                ),
-                                pz.button("Browse", self.browse_download),
-                                pz.button("Download", self.download_file, background="#f472b6"),
-                                pz.button("Delete", self.delete_file, background="#ef4444"),
-                                spacing=10,
-                            ),
-                        ),
-                        spacing=30,
+                        padding=15,
+                        bg="#1a1a2e",
                     ),
-                    padding=20,
-                    background="#16213e",
-                    border_radius=12,
-                ),
-                # Status bar
-                pz.container(
-                    pz.row(
-                        pz.text(f"Status: {self.status}", size=12, color="#888"),
-                        pz.progress(value=self.progress, min_height=8),
-                    ),
-                    padding=15,
-                    background="#1a1a2e",
-                ),
+                ],
                 spacing=20,
                 padding=30,
             ),
-            background="#0d1117",
+            bg="#0d1117",
         )
 
     def connect(self):
@@ -206,11 +231,20 @@ class B2Manager(pz.App):
         except Exception as e:
             self.status = f"Error listing buckets: {str(e)}"
 
-    def on_bucket_select(self, index):
+    def on_bucket_select_by_index(self, index):
         if index >= 0 and index < len(self.buckets):
             self.selected_bucket = self.buckets[index]
             self.current_folder = ""
             self.list_files()
+
+    def on_bucket_select_click(self, bucket):
+        self.selected_bucket = bucket
+        self.current_folder = ""
+        self.list_files()
+
+    def on_bucket_select(self, index):
+        if index >= 0 and index < len(self.buckets):
+            self.on_bucket_select_click(self.buckets[index])
 
     def list_files(self):
         if not self.selected_bucket or not self.b2_api:
@@ -244,9 +278,16 @@ class B2Manager(pz.App):
             size /= 1024
         return f"{size:.1f} TB"
 
-    def on_file_select(self, index):
+    def on_file_select_by_index(self, index):
         if index >= 0 and index < len(self.files):
             self.selected_file = self.files[index]
+
+    def on_file_select_click(self, file):
+        self.selected_file = file
+
+    def on_file_select(self, index):
+        if index >= 0 and index < len(self.files):
+            self.on_file_select_click(self.files[index])
 
     def on_file_double_click(self, index):
         if index >= 0 and index < len(self.files):
@@ -258,6 +299,10 @@ class B2Manager(pz.App):
                 else:
                     self.current_folder = folder_name
                 self.list_files()
+            else:
+                # File double-click - trigger download
+                self.on_file_select_by_index(index)
+                self.download_file()
 
     def go_back(self):
         if self.current_folder:
